@@ -30,22 +30,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include "i3lfr.h"
 
 int main(int argc, char *argv[])
 {
   int c;
-  FILE *src = stdin, *dst = stdout;
-  int radius = 5, times = 3;
+  FILE *src = NULL, *dst = NULL;
+  int radius = 5, times = 3, height = 0, width = 0;
 
-  while ((c = getopt(argc, argv, "i:o:r:t:")) != -1) {
+  while ((c = getopt(argc, argv, "i:o:r:t:h:w:")) != -1) {
     switch (c)
       {
       case 'i':
-        src = NULL;
+        src = fopen(optarg, "rb");
         break;
       case 'o':
-        dst = NULL;
+        dst = fopen(optarg, "wb");
         break;
       case 'r':
         radius = atoi (optarg);
@@ -53,10 +54,44 @@ int main(int argc, char *argv[])
       case 't':
         times = atoi (optarg);
         break;
+      case 'h':
+        height = atoi (optarg);
+        break;
+      case 'w':
+        width = atoi (optarg);
+        break;
       default:
         break;
     }
   }
 
+  if (!(src && dst)) {
+    fprintf(stderr, "Specify in- and output files\n");
+    return (EXIT_FAILURE);
+  }
+
+  fseek(src, 0L, SEEK_END);
+  size_t size = ftell(src);
+  fseek(src, 0L, SEEK_SET);
+
+  unsigned char * preblur = (unsigned char *) malloc(size);
+  unsigned char * postblur = (unsigned char *) malloc(size);
+
+  fread(preblur, sizeof(unsigned char), size, src);
+  fclose(src);
+
+  fwrite(postblur, sizeof(unsigned char), size, dst);
+  fclose(dst);
+
+  if (radius < 0 || times < 0) {
+    fprintf(stderr, "Radius has to be non-negative!\n");
+    free(preblur);
+    free(postblur);
+    exit(EXIT_FAILURE);
+  }
+  box_blur(postblur, preblur, height, width, radius, times);
+
+  free(preblur);
+  free(postblur);
   return 0;
 }
