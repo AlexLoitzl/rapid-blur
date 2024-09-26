@@ -80,9 +80,6 @@ int main(int argc, char *argv[])
   fread(preblur, sizeof(unsigned char), size, src);
   fclose(src);
 
-  fwrite(postblur, sizeof(unsigned char), size, dst);
-  fclose(dst);
-
   if (radius < 0 || times < 0) {
     fprintf(stderr, "Radius has to be non-negative!\n");
     free(preblur);
@@ -90,6 +87,9 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
   box_blur(postblur, preblur, height, width, radius, times);
+
+  fwrite(postblur, sizeof(unsigned char), size, dst);
+  fclose(dst);
 
   free(preblur);
   free(postblur);
