@@ -2,7 +2,7 @@ CC := cc
 
 TARGET := rapid-blur
 
-CFLAGS=-O3 -march=native -fopenmp -Wall -Wextra -lX11
+CFLAGS=-O3 -march=native -fopenmp -Wall -Wextra 
 
 OBJS := i3lock-fancy-rapid.o
 
@@ -16,3 +16,6 @@ clean:
 
 i3lock-fancy-rapid.o: i3lock-fancy-rapid.c
 	$(CC) $(CFLAGS) -c i3lock-fancy-rapid.c
+
+install:
+	ln -s $(shell pwd)/$(TARGET) /usr/bin/rapid-blur
