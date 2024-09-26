@@ -30,13 +30,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <malloc.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
 #include <omp.h>
 #include <string.h>
 
