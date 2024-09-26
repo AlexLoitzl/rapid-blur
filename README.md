@@ -3,10 +3,20 @@
 A simple box-blur based on [i3lock-fancy-rapid](https://github.com/yvbbrjdr/i3lock-fancy-rapid).
 
 Intended to be used with swaylock for a blurred background image. 
-
 At the moment it works on raw rgb files only.
 
-A simple script could look like this:
+## Installation
+Call `make`in the root directory to build the binary `rapid-blur`.
+A subsequent `make install` call will add a symling to `/usr/bin`.
+
+## Usage
+You can generally use the script to blur any image with:
+
+``` sh
+rapid-blur -i <IMAGE> -o <OUTPUT> -w <WIDTH> -h <HEIGHT>
+```
+
+To use it with swaylock, you can simply include it in a simple script similar to the one below:
 
 ``` sh
 #!/bin/sh
@@ -28,5 +38,5 @@ done
 swaylock $args "$@"
 ```
 
-It may be advisable to do some scaling for 4k displays
+It may be advisable to do some scaling for 4k displays to speed up the blur
 The calls to imagemagick take the longest time, moving the image handling into the c code is the next TODO
