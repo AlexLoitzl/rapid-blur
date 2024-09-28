@@ -29,14 +29,26 @@ for display in $DISPLAYS; do
     grim -o "$display" "$FILE.png"
     WIDTH=$(identify -format '%w' "$FILE.png")
     HEIGHT=$(identify -format "%[fx:h]" "$FILE.png")
-    magick "$FILE.png" "$FILE.rgb"
-    rapid-blur -i "$FILE.rgb" -o "$FILE-out.rgb" -w "$WIDTH" -h "$HEIGHT"
-    magick -size "$WIDTH"x"$HEIGHT" -depth 8 "$FILE-out.rgb" "$FILE.png"
+
+    if [ $WIDTH -gt 1920 ]; then
+        # For 4K screens scale before blurring
+        WIDTH=$(($WIDTH /2))
+        HEIGHT=$(($HEIGHT /2))
+        magick "$FILE.png" -scale 50% "$FILE.rgb"
+        rapid-blur -i "$FILE.rgb" -o "$FILE-out.rgb" -w "$WIDTH" -h "$HEIGHT" -r 3 -t 1
+        magick -size "$WIDTH"x"$HEIGHT" -depth 8 "$FILE-out.rgb" -scale 200% "$FILE.png"
+    else
+        magick "$FILE.png" "$FILE.rgb"
+        rapid-blur -i "$FILE.rgb" -o "$FILE-out.rgb" -w "$WIDTH" -h "$HEIGHT"
+        magick -size "$WIDTH"x"$HEIGHT" -depth 8 "$FILE-out.rgb" "$FILE.png"
+    fi
     args="$args -i ${display}:${FILE}.png"
+done
+
+swaylock $args"$@"
 done
 
 swaylock $args "$@"
 ```
 
-It may be advisable to do some scaling for 4k displays to speed up the blur
 The calls to imagemagick take the longest time, moving the image handling into the c code is the next TODO
