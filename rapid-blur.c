@@ -32,6 +32,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include "i3lfr.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 int main(int argc, char *argv[])
 {
