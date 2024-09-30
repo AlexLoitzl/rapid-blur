@@ -34,21 +34,51 @@
 #include "i3lfr.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+void process_image(char *dst_name, char *src_name, int radius, int times) {
+  int width, height, channels;
+
+  // Read Image data
+  unsigned char *src_image = stbi_load(src_name, &width, &height, &channels, 0);
+  // Abort if there's not three channels.
+  if (!src_image || channels != 3) {
+    fprintf(stderr, "Error loading image: %s\n", stbi_failure_reason());
+    exit(EXIT_FAILURE);
+  }
+
+  unsigned char *dst_image = (unsigned char *) malloc(width * height * channels);
+
+  if (!dst_image) {
+    fprintf(stderr, "Failed to allocate memory for output: %s\n", stbi_failure_reason());
+    exit(EXIT_FAILURE);
+  }
+
+  box_blur(dst_image, src_image, height, width, radius, times);
+
+  if(!stbi_write_png(dst_name, width, height, channels, dst_image, width * channels)) {
+    printf("Error");
+    exit(EXIT_FAILURE);
+  }
+  free(src_image);
+  free(dst_image);
+}
 
 int main(int argc, char *argv[])
 {
   int c;
-  FILE *src = NULL, *dst = NULL;
-  int radius = 5, times = 3, height = 0, width = 0;
+  int radius = 5, times = 3;
+  char *in = "", *out = "";
 
-  while ((c = getopt(argc, argv, "i:o:r:t:h:w:")) != -1) {
+  while ((c = getopt(argc, argv, "i:o:r:t")) != -1) {
     switch (c)
       {
       case 'i':
-        src = fopen(optarg, "rb");
+        in = optarg;
         break;
       case 'o':
-        dst = fopen(optarg, "wb");
+        out = optarg;
         break;
       case 'r':
         radius = atoi (optarg);
@@ -56,44 +86,43 @@ int main(int argc, char *argv[])
       case 't':
         times = atoi (optarg);
         break;
-      case 'h':
-        height = atoi (optarg);
-        break;
-      case 'w':
-        width = atoi (optarg);
-        break;
       default:
         break;
     }
   }
 
-  if (!(src && dst)) {
-    fprintf(stderr, "Specify in- and output files\n");
-    return (EXIT_FAILURE);
-  }
+  /* if (!(src && dst)) { */
+  /*   fprintf(stderr, "Specify in- and output files\n"); */
+  /*   return (EXIT_FAILURE); */
+  /* } */
+  process_image(out, in, radius, times);
+  /* if (!(src && dst)) { */
+  /*   fprintf(stderr, "Specify in- and output files\n"); */
+  /*   return (EXIT_FAILURE); */
+  /* } */
 
-  fseek(src, 0L, SEEK_END);
-  size_t size = ftell(src);
-  fseek(src, 0L, SEEK_SET);
+  /* fseek(src, 0L, SEEK_END); */
+  /* size_t size = ftell(src); */
+  /* fseek(src, 0L, SEEK_SET); */
 
-  unsigned char * preblur = (unsigned char *) malloc(size);
-  unsigned char * postblur = (unsigned char *) malloc(size);
+  /* unsigned char * preblur = (unsigned char *) malloc(size); */
+  /* unsigned char * postblur = (unsigned char *) malloc(size); */
 
-  fread(preblur, sizeof(unsigned char), size, src);
-  fclose(src);
+  /* fread(preblur, sizeof(unsigned char), size, src); */
+  /* fclose(src); */
 
-  if (radius < 0 || times < 0) {
-    fprintf(stderr, "Radius has to be non-negative!\n");
-    free(preblur);
-    free(postblur);
-    exit(EXIT_FAILURE);
-  }
-  box_blur(postblur, preblur, height, width, radius, times);
+  /* if (radius < 0 || times < 0) { */
+  /*   fprintf(stderr, "Radius has to be non-negative!\n"); */
+  /*   free(preblur); */
+  /*   free(postblur); */
+  /*   exit(EXIT_FAILURE); */
+  /* } */
+  /* box_blur(postblur, preblur, height, width, radius, times); */
 
-  fwrite(postblur, sizeof(unsigned char), size, dst);
-  fclose(dst);
+  /* fwrite(postblur, sizeof(unsigned char), size, dst); */
+  /* fclose(dst); */
 
-  free(preblur);
-  free(postblur);
+  /* free(preblur); */
+  /* free(postblur); */
   return 0;
 }
