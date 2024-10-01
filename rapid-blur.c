@@ -38,6 +38,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+void print_usage();
+
 void process_image(char *dst_name, char *src_name, int radius, int times, int pixel) {
   int width, height, channels;
 
@@ -77,9 +79,13 @@ int main(int argc, char *argv[])
   char *in = "", *out = "";
 
   // Parse args
-  while ((c = getopt(argc, argv, "r:t:p")) != -1) {
+  while ((c = getopt(argc, argv, "r:t:ph")) != -1) {
     switch (c)
       {
+      case 'h':
+        print_usage();
+        exit(EXIT_SUCCESS);
+        break;
       case 'r':
         radius = atoi (optarg);
         break;
@@ -119,4 +125,14 @@ int main(int argc, char *argv[])
   process_image(out, in, radius, times, pixel);
 
   exit(EXIT_SUCCESS);
+}
+
+void print_usage() {
+  printf("Usage: rapid-blur [OPTION] INPUT OUTPUT.\n");
+  printf("Box blur or pixelate an INPUT image file (png, jpg, ...).\n\n");
+  printf(
+"The following options are available:\n\
+  -p,         Pixelate instead of blurring (The times parameter will be ignored)\n\
+  -r PIXELS,  Each pixel's values will be interpolated with a radius of PIXELS pixels (Default: 5)\n\
+  -t TIMES,   The blur will be repeated TIMES many times (Default: 3)");
 }
