@@ -27,6 +27,7 @@
 /* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE */
 /* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -57,12 +58,13 @@ void process_image(char *dst_name, char *src_name, int radius, int times) {
 
   box_blur(dst_image, src_image, height, width, radius, times);
 
-  if(!stbi_write_png(dst_name, width, height, channels, dst_image, width * channels)) {
-    printf("Error");
-    exit(EXIT_FAILURE);
-  }
+  int ret = stbi_write_png(dst_name, width, height, channels, dst_image, width * channels);
+
   free(src_image);
   free(dst_image);
+
+  if (!ret)
+    exit(EXIT_FAILURE);
 }
 
 int main(int argc, char *argv[])
@@ -71,58 +73,37 @@ int main(int argc, char *argv[])
   int radius = 5, times = 3;
   char *in = "", *out = "";
 
-  while ((c = getopt(argc, argv, "i:o:r:t")) != -1) {
+  while ((c = getopt(argc, argv, "r:t:")) != -1) {
     switch (c)
       {
-      case 'i':
-        in = optarg;
-        break;
-      case 'o':
-        out = optarg;
-        break;
       case 'r':
         radius = atoi (optarg);
         break;
       case 't':
         times = atoi (optarg);
         break;
+      case '?':
+        if (optopt == 'r' || optopt == 't')
+          fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+        else if (isprint(optopt))
+          fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+        else
+          fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+        exit(EXIT_FAILURE);
       default:
-        break;
-    }
+        abort ();
+      }
   }
 
-  /* if (!(src && dst)) { */
-  /*   fprintf(stderr, "Specify in- and output files\n"); */
-  /*   return (EXIT_FAILURE); */
-  /* } */
+  if (argc - optind != 2) {
+    printf("Invalid arguments");
+    exit(EXIT_FAILURE);
+  }
+
+  in = argv[optind++];
+  out = argv[optind];
+
   process_image(out, in, radius, times);
-  /* if (!(src && dst)) { */
-  /*   fprintf(stderr, "Specify in- and output files\n"); */
-  /*   return (EXIT_FAILURE); */
-  /* } */
 
-  /* fseek(src, 0L, SEEK_END); */
-  /* size_t size = ftell(src); */
-  /* fseek(src, 0L, SEEK_SET); */
-
-  /* unsigned char * preblur = (unsigned char *) malloc(size); */
-  /* unsigned char * postblur = (unsigned char *) malloc(size); */
-
-  /* fread(preblur, sizeof(unsigned char), size, src); */
-  /* fclose(src); */
-
-  /* if (radius < 0 || times < 0) { */
-  /*   fprintf(stderr, "Radius has to be non-negative!\n"); */
-  /*   free(preblur); */
-  /*   free(postblur); */
-  /*   exit(EXIT_FAILURE); */
-  /* } */
-  /* box_blur(postblur, preblur, height, width, radius, times); */
-
-  /* fwrite(postblur, sizeof(unsigned char), size, dst); */
-  /* fclose(dst); */
-
-  /* free(preblur); */
-  /* free(postblur); */
-  return 0;
+  exit(EXIT_SUCCESS);
 }
