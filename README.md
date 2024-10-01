@@ -6,22 +6,22 @@ The script was originally intended to be used with swaylock, but can generally b
 
 ## Installation
 Call `make`in the root directory to build the binary `rapid-blur`.
-A subsequent `make install` call will add a symling to `/usr/bin`.
+A subsequent `make install` call will add a symlink to `/usr/bin`.
 
 ## Usage
 You can generally use the script to blur any image with:
 
 ``` sh
-rapid-blur <IMAGE> <OUTPUT> 
+rapid-blur IMAGE OUTPUT 
 ```
 
 To customize the level of blur, one can set the radius with `-r`and times with `-t`
 ``` sh
-rapid-blur -r 5 -t 3 <IMAGE> <OUTPUT> 
+rapid-blur -r 5 -t 3 IMAGE OUTPUT
 ```
 To pixelate instead, pass the `-p` flag
 ``` sh
-rapid-blur -p <IMAGE> <OUTPUT> 
+rapid-blur -p IMAGE OUTPUT
 ```
 
 ### Using with a screen locking utility (swaylock)
@@ -39,7 +39,7 @@ for display in $DISPLAYS; do
     
     rapid-blur -i "$FILE.png" -o "$FILE-out.png" 
     
-	args="$args -i ${display}:${FILE}-out.png"
+    args="$args -i ${display}:${FILE}-out.png"
 done
 
 swaylock $args"$@"
