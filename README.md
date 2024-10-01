@@ -37,7 +37,7 @@ for display in $DISPLAYS; do
     FILE="${BASE_FILE}${display}"
     grim -o "$display" "$FILE.png"
     
-    rapid-blur -i "$FILE.png" -o "$FILE-out.png" 
+    rapid-blur "$FILE.png" "$FILE-out.png" 
     
     args="$args -i ${display}:${FILE}-out.png"
 done
