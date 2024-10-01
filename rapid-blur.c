@@ -38,7 +38,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-void process_image(char *dst_name, char *src_name, int radius, int times) {
+void process_image(char *dst_name, char *src_name, int radius, int times, int pixel) {
   int width, height, channels;
 
   // Read Image data
@@ -56,7 +56,10 @@ void process_image(char *dst_name, char *src_name, int radius, int times) {
     exit(EXIT_FAILURE);
   }
 
-  box_blur(dst_image, src_image, height, width, radius, times);
+  if (pixel)
+    pixelate(dst_image, src_image, height, width, radius);
+  else
+    box_blur(dst_image, src_image, height, width, radius, times);
 
   int ret = stbi_write_png(dst_name, width, height, channels, dst_image, width * channels);
 
@@ -70,10 +73,11 @@ void process_image(char *dst_name, char *src_name, int radius, int times) {
 int main(int argc, char *argv[])
 {
   int c;
-  int radius = 5, times = 3;
+  int radius = 5, times = 3, pixel = 0;
   char *in = "", *out = "";
 
-  while ((c = getopt(argc, argv, "r:t:")) != -1) {
+  // Parse args
+  while ((c = getopt(argc, argv, "r:t:p")) != -1) {
     switch (c)
       {
       case 'r':
@@ -81,6 +85,9 @@ int main(int argc, char *argv[])
         break;
       case 't':
         times = atoi (optarg);
+        break;
+      case 'p':
+        pixel = 1;
         break;
       case '?':
         if (optopt == 'r' || optopt == 't')
@@ -94,16 +101,22 @@ int main(int argc, char *argv[])
         abort ();
       }
   }
-
-  if (argc - optind != 2) {
+  // Check args
+  if (times < 0) {
+    printf("Times has to be non-negative");
+    exit(EXIT_FAILURE);
+  } else if (radius < 0) {
+    printf("Radius has to be non-negative");
+    exit(EXIT_FAILURE);
+  } else if (argc - optind != 2) {
     printf("Invalid arguments");
     exit(EXIT_FAILURE);
+  } else {
+    in = argv[optind++];
+    out = argv[optind];
   }
 
-  in = argv[optind++];
-  out = argv[optind];
-
-  process_image(out, in, radius, times);
+  process_image(out, in, radius, times, pixel);
 
   exit(EXIT_SUCCESS);
 }
