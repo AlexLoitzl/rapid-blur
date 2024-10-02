@@ -29,18 +29,17 @@ To use it with swaylock, you can simply include it in a simple script similar to
 
 ``` sh
 #!/bin/sh
-
 DISPLAYS="$(swaymsg -t get_outputs -p | grep "Output" | awk '{print $2}')"
+# Reverse Displays (So external 4K is started first)
+DISPLAYS=$(tac -s ' ' <<< $(echo $DISPLAYS))
 BASE_FILE="${TMPDIR:-/tmp/ss}"
-
 for display in $DISPLAYS; do
     FILE="${BASE_FILE}${display}"
     grim -o "$display" "$FILE.png"
     
-    rapid-blur "$FILE.png" "$FILE-out.png" 
-    
-    args="$args -i ${display}:${FILE}-out.png"
+    rapid-blur "$FILE.png" "$FILE-out.png" &
+	args="$args -i ${display}:${FILE}-out.png"
 done
-
-swaylock $args"$@"
+wait
+swaylock $args
 ```

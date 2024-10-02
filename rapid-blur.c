@@ -37,10 +37,22 @@
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "stb_image_resize2.h"
 
 void print_usage();
 
-void process_image(char *dst_name, char *src_name, int radius, int times, int pixel) {
+
+static inline void manipulate_image(unsigned char *dst, unsigned char *src, int radius, int times,
+                                    int width, int height, int pixel) {
+    if (pixel)
+      pixelate(dst, src, height, width, radius);
+    else{
+      box_blur(dst, src, height, width, radius, times);
+    }
+}
+
+void process_image(char *dst_name, char *src_name, int radius, int times, int pixel, int rapid_limit) {
   int width, height, channels;
 
   // Read Image data
@@ -52,16 +64,28 @@ void process_image(char *dst_name, char *src_name, int radius, int times, int pi
   }
 
   unsigned char *dst_image = (unsigned char *) malloc(width * height * channels);
-
   if (!dst_image) {
-    fprintf(stderr, "Failed to allocate memory for output: %s\n", stbi_failure_reason());
+    fprintf(stderr, "Failed to allocate memory\n");
     exit(EXIT_FAILURE);
   }
 
-  if (pixel)
-    pixelate(dst_image, src_image, height, width, radius);
-  else
-    box_blur(dst_image, src_image, height, width, radius, times);
+  if (width >= rapid_limit) {
+    int work_width = width / 2, work_height = height / 2;
+    unsigned char *work_image = stbir_resize_uint8_srgb(src_image, width, height, width * channels,
+                                                        NULL, work_width, work_height, work_width * channels, 3);
+
+    if (!work_image) {
+      fprintf(stderr, "Error resizing image: %s\n", stbi_failure_reason());
+      exit(EXIT_FAILURE);
+    }
+    manipulate_image(src_image, work_image, radius, times, work_width, work_height, pixel);
+
+    stbir_resize_uint8_srgb(src_image, work_width, work_height, work_width * channels,
+                            dst_image, width, height, width * channels, 3);
+    free(work_image);
+  } else {
+    manipulate_image(dst_image, src_image, radius, times, width, height, pixel);
+  }
 
   int ret = stbi_write_png(dst_name, width, height, channels, dst_image, width * channels);
 
@@ -77,9 +101,10 @@ int main(int argc, char *argv[])
   int c;
   int radius = 5, times = 3, pixel = 0;
   char *in = "", *out = "";
+  int limit = INT_MAX;
 
   // Parse args
-  while ((c = getopt(argc, argv, "r:t:ph")) != -1) {
+  while ((c = getopt(argc, argv, "r:t:l:ph")) != -1) {
     switch (c)
       {
       case 'h':
@@ -94,6 +119,9 @@ int main(int argc, char *argv[])
         break;
       case 'p':
         pixel = 1;
+        break;
+      case 'l':
+        limit = atoi (optarg);
         break;
       case '?':
         if (optopt == 'r' || optopt == 't')
@@ -122,7 +150,7 @@ int main(int argc, char *argv[])
     out = argv[optind];
   }
 
-  process_image(out, in, radius, times, pixel);
+  process_image(out, in, radius, times, pixel, limit);
 
   exit(EXIT_SUCCESS);
 }
@@ -134,5 +162,6 @@ void print_usage() {
 "The following options are available:\n\
   -p,         Pixelate instead of blurring (The times parameter will be ignored)\n\
   -r PIXELS,  Each pixel's values will be interpolated with a radius of PIXELS pixels (Default: 5)\n\
-  -t TIMES,   The blur will be repeated TIMES many times (Default: 3)");
+  -t TIMES,   The blur will be repeated TIMES many times (Default: 3)\n\
+  -l WIDTH,   If the image width exceeds WIDTH, it's resized to half its size, blurred and scaled back again");
 }
