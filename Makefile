@@ -1,4 +1,4 @@
-CC := cc
+CC := gcc 
 
 TARGET := rapid-blur
 
@@ -9,13 +9,13 @@ OBJS := i3lock-fancy-rapid.o
 all: $(TARGET)
 
 $(TARGET): $(TARGET).c $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(TARGET).c -o $(TARGET)
+	$(CC) $(CFLAGS) $(OBJS) $(TARGET).c -o $(TARGET) 
 
 clean:
 	$(RM) $(TARGET) $(OBJS)
 
 i3lock-fancy-rapid.o: third-party/i3lock-fancy-rapid.c
-	$(CC) $(CFLAGS) -c third-party/i3lock-fancy-rapid.c
+	$(CC) $(CFLAGS) -c third-party/i3lock-fancy-rapid.c 
 
 install:
 	ln -s $(shell pwd)/$(TARGET) /usr/bin/rapid-blur
