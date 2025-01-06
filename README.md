@@ -32,7 +32,7 @@ To use it with swaylock, you can simply include it in a simple script similar to
 DISPLAYS="$(swaymsg -t get_outputs -p | awk '/Output/ && !/disabled/ {print $2}')"
 # Reverse Displays (So external 4K is started first)
 DISPLAYS=$(tac -s ' ' <<< $(echo $DISPLAYS))
-echo $DISPLAYS
+
 BASE_FILE="${TMPDIR:-/tmp/ss}"
 for display in $DISPLAYS; do
     FILE="${BASE_FILE}${display}"
